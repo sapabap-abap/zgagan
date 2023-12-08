@@ -1,0 +1,35 @@
+* Set Handler
+      call method cl_salv_bs_runtime_info=>set
+        exporting
+          display  = abap_false
+          metadata = abap_true
+          data     = abap_true.
+* Call report
+      submit (i_report)
+       using selection-set (i_variant)
+       and return.
+* get data back
+      call method cl_salv_bs_runtime_info=>get_data_ref
+        importing
+          r_data = gr_data.
+* get medtadata back
+      ls_metadata = cl_salv_bs_runtime_info=>get_metadata( ).
+* simulate the ALV
+      lr_result_data = cl_salv_ex_util=>factory_result_data_table(
+        r_data                 = gr_data
+        s_layout               = ls_metadata-s_layout
+        t_fieldcatalog         = ls_metadata-t_fcat
+        t_sort                 = ls_metadata-t_sort
+        t_filter               = ls_metadata-t_filter ).
+* convert to mhtml
+      cl_salv_bs_tt_util=>if_salv_bs_tt_util~transform(
+        exporting
+          xml_version   = if_salv_bs_xml=>version
+          r_result_data = lr_result_data
+          xml_type      = if_salv_bs_xml=>c_type_mhtml
+          xml_flavour   = if_salv_bs_c_tt=>c_tt_xml_flavour_export
+          gui_type      = if_salv_bs_xml=>c_gui_type_gui
+        importing
+          xml           = e_xml ).
+* be clean
+      cl_salv_bs_runtime_info=>clear_all(
